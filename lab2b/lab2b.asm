@@ -2,14 +2,24 @@
 ;it will be positive.
 .ORIG x3000
 
+DIV_LOOP
+	JSR DIV				;divide by 10
+	JSR PUSH			;store remainder in stack
+	ADD R3, R1, #0		;set new quotient
+	BRnp DIV_LOOP		;restart until quotient is 0
 
+PRINT_LOOP
+	JSR POP				;pop single digit
+	ADD R5, R5, #0		;
+	BRp END				;use underflow of pop to see when all digits have been read
+	ADD R0, R0, #15		;add ascii value of '0'
+	ADD R0, R0, #15		;
+	ADD R0, R0, #15		;
+	ADD R0, R0, #3		;
+	OUT					;print
+	BR PRINT_LOOP		;restart
 
-
-
-
-
-
-
+END	HALT				;
 
 
 
@@ -17,9 +27,24 @@
 ASCII_0 .FILL x30
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;input R3, R4
-;out R0-quotient, R1-remainder
-DIV	
+;out R1-quotient, R0-remainder
+DIV
+	ST R2, DIV_SaveR2	;save R2
+	ADD R0, R3, #0		;
+	AND R1, R1, #0		;
+STILL_DIV
+	ADD R2, R0, #-10	;
+	BRn DIV_DONE		;
+	ADD R0, R0, #-10	;
+	ADD R1, R1, #1		;
+	BR STILL_DIV
+DIV_DONE
+	LD R2, DIV_SaveR2	;
 	RET
+
+
+DIV_SaveR2	.BLKW #1	;
+
 
 
 ;IN:R0, OUT:R5 (0-success, 1-fail/overflow)
