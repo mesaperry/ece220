@@ -1,5 +1,14 @@
 #include "game.h"
-
+/*
+This program recreates the game of 2048. In the function make_game, I
+initilized all the necessary values within the game struct. In the function
+remake_game, I reinitialized the game struct values to a new set of values.
+In the function get_cell, I verified that the inputs row and col were in
+bounds, then returned a pointer to the index. In the move functions, I
+implemented the games mechanics in each of the four directions and included
+score keeping. In the function legal_move_check I checked each cell for
+unassigned values to determine whether any more moves would be possible.
+*/
 
 game * make_game(int rows, int cols)
 /*! Create an instance of a game structure with the given number of rows
@@ -14,8 +23,12 @@ game * make_game(int rows, int cols)
     mygame->cells = malloc(rows*cols*sizeof(cell));
 
     //YOUR CODE STARTS HERE:  Initialize all other variables in game struct
-
-
+	mygame->rows = rows;
+	mygame->cols = cols;
+	mygame->score = 0;
+	for(int i=0; i<(rows*cols); i++){
+		mygame->cells[i] = -1;
+	}
     return mygame;
 }
 
@@ -32,7 +45,12 @@ void remake_game(game ** _cur_game_ptr,int new_rows,int new_cols)
 	(*_cur_game_ptr)->cells = malloc(new_rows*new_cols*sizeof(cell));
 
 	 //YOUR CODE STARTS HERE:  Re-initialize all other variables in game struct
-
+	(*_cur_game_ptr)->rows = new_rows;
+	(*_cur_game_ptr)->cols = new_cols;
+	(*_cur_game_ptr)->score = 0;
+	for(int i=0; i<(new_rows*new_cols); i++){
+		(*_cur_game_ptr)->cells[i] = -1;
+	}
 	return;	
 }
 
@@ -54,8 +72,12 @@ cell * get_cell(game * cur_game, int row, int col)
 */
 {
     //YOUR CODE STARTS HERE
-
-    return NULL;
+	if(0<=row && row<=(cur_game->rows) && 0<=col && col<=(cur_game->cols)){
+		return &(cur_game->cells[col+(row*cur_game->cols)]);
+	}
+	else{
+    	return NULL;
+	}
 }
 
 int move_w(game * cur_game)
@@ -67,28 +89,280 @@ int move_w(game * cur_game)
 */
 {
     //YOUR CODE STARTS HERE
+    int* cells = malloc((cur_game->rows)*(cur_game->cols)); //create empty array of cells
+	for(int i=0; i<((cur_game->rows)*(cur_game->cols)); i++){
+		cells[i] = cur_game->cells[i]; //copy current board to new array of cells
+	}
+	for(int col = 0; col<(cur_game->cols); col++){ //go through col by col
+		for(int row = 0; row<(cur_game->rows); row++){ //go through row by row
+			int index = col+(row*cur_game->cols); //calculate current cell index
+			int combined = 0;
+			int is_combined = 0;
+			if(cells[index]!=-1){ //if cell has value
+				for(int search_index=index+(cur_game->cols); search_index<=((cur_game->rows)*(cur_game->cols)-1); search_index+=(cur_game->cols)){ //cycle through following cells in the col
+					if(cells[search_index]!=-1){ //if the parsed cell is assigned
+						if(cells[index]==cells[search_index]){ //if duplicate found
+							cells[search_index] = -1;
+							combined = cells[index]*2;
+							is_combined = 1;
+						}
+						break;
+					}
+				}
+			}
+			else if(cells[index]==-1){ //cell is unassigned
+				int first_val = 0;
+				for(int search_index=index+(cur_game->cols); search_index<=((cur_game->rows)*(cur_game->cols)-1); search_index+=(cur_game->cols)){ //cycle through following cells in the col
+					if(!first_val){ //if no first value has been yet found
+						if(cells[search_index]!=-1){ //if the parsed cell is assigned
+							first_val = cells[search_index]; //set first value
+							cells[search_index] = -1; //clear cell
+							combined = first_val;
+						}
+					}
+					if(first_val){ //if a first value has been found
+						if(cells[search_index]!=-1){ //if the parsed cell is assigned
+							if(first_val==cells[search_index]){ //if duplicate found
+								combined = cells[search_index]+first_val; 
+								cells[search_index] = -1;
+								is_combined = 1;
+							}
+							break;
+						}
+					}
+				}
+			}
+			if(combined){ //if values were combined
+				cells[index] = combined; //set value to new combined value
+				if(is_combined){ //if values were combined
+					cur_game->score += cells[index]; //update score
+				}
+			}
+		}
+	}
 
-    return 1;
+	int disparities = 0;
+	for(int i=0; i<((cur_game->rows)*(cur_game->cols)); i++){
+		if(cur_game->cells[i] != cells[i]){ //check for disparities
+			disparities ++;
+		}
+		cur_game->cells[i] = cells[i]; //copy working copy of cells to board
+	}
+	if(!disparities){
+		return 0;
+	}
+	else{
+    	return 1;
+	}
 };
 
 int move_s(game * cur_game) //slide down
 {
     //YOUR CODE STARTS HERE
+	int* cells = malloc((cur_game->rows)*(cur_game->cols)); //create empty array of cells
+	for(int i=0; i<((cur_game->rows)*(cur_game->cols)); i++){
+		cells[i] = cur_game->cells[i]; //copy current board to new array of cells
+	}
+	for(int col=0; col<(cur_game->cols); col++){ //go through col by col
+		for(int row=(cur_game->rows)-1; row>=0; row--){ //go through row by row
+			int index = col+(row*cur_game->cols); //calculate current cell index
+			int combined = 0;
+			int is_combined = 0;
+			if(cells[index]!=-1){ //if cell has value
+				for(int search_index=(index-(cur_game->cols)); search_index>=0; search_index-=(cur_game->cols)){ //cycle through following cells in the col
+					if(cells[search_index]!=-1){ //if the parsed cell is assigned
+						if(cells[index]==cells[search_index]){ //if duplicate found
+							cells[search_index] = -1;
+							combined = cells[index]*2;
+							is_combined = 1;
+						}
+						break;
+					}
+				}
+			}
+			else if(cells[index]==-1){ //cell is unassigned
+				int first_val = 0;
+				for(int search_index=(index-(cur_game->cols)); search_index>=0; search_index-=(cur_game->cols)){ //cycle through following cells in the col
+					if(!first_val){ //if no first value has been yet found
+						if(cells[search_index]!=-1){ //if the parsed cell is assigned
+							first_val = cells[search_index]; //set first value
+							cells[search_index] = -1; //clear cell
+							combined = first_val;
+						}
+					}
+					if(first_val){ //if a first value has been found
+						if(cells[search_index]!=-1){ //if the parsed cell is assigned
+							if(first_val==cells[search_index]){ //if duplicate found
+								combined = cells[search_index]+first_val; 
+								cells[search_index] = -1;
+								is_combined = 1;
+							}
+							break;
+						}
+					}
+				}
+			}
+			if(combined){ //if values were combined
+				cells[index] = combined; //set value to new combined value
+				if(is_combined){ //if values were combined
+					cur_game->score += cells[index]; //update score
+				}
+			}
+		}
+	}
 
-    return 1;
+	int disparities = 0;
+	for(int i=0; i<((cur_game->rows)*(cur_game->cols)); i++){
+		if(cur_game->cells[i] != cells[i]){ //check for disparities
+			disparities ++;
+		}
+		cur_game->cells[i] = cells[i]; //copy working copy of cells to board
+	}
+	if(!disparities){
+		return 0;
+	}
+	else{
+    	return 1;
+	}
 };
 
 int move_a(game * cur_game) //slide left
 {
     //YOUR CODE STARTS HERE
+	int* cells = malloc((cur_game->rows)*(cur_game->cols)); //create empty array of cells
+	for(int i=0; i<((cur_game->rows)*(cur_game->cols)); i++){
+		cells[i] = cur_game->cells[i]; //copy current board to new array of cells
+	}
+	for(int col = 0; col<(cur_game->cols); col++){ //go through col by col
+		for(int row = 0; row<(cur_game->rows); row++){ //go through row by row
+			int index = col+(row*cur_game->cols); //calculate current cell index
+			int combined = 0;
+			int is_combined = 0;
+			if(cells[index]!=-1){ //if cell has value
+				for(int search_index=index+1; search_index<(row+1)*(cur_game->cols); search_index++){ //cycle through following cells in the col
+					if(cells[search_index]!=-1){ //if the parsed cell is assigned
+						if(cells[index]==cells[search_index]){ //if duplicate found
+							cells[search_index] = -1;
+							combined = cells[index]*2;
+							is_combined = 1;
+						}
+						break;
+					}
+				}
+			}
+			else if(cells[index]==-1){ //cell is unassigned
+				int first_val = 0;
+				for(int search_index=index+1; search_index<(row+1)*(cur_game->cols); search_index++){ //cycle through following cells in the col
+					if(!first_val){ //if no first value has been yet found
+						if(cells[search_index]!=-1){ //if the parsed cell is assigned
+							first_val = cells[search_index]; //set first value
+							cells[search_index] = -1; //clear cell
+							combined = first_val;
+						}
+					}
+					if(first_val){ //if a first value has been found
+						if(cells[search_index]!=-1){ //if the parsed cell is assigned
+							if(first_val==cells[search_index]){ //if duplicate found
+								combined = cells[search_index]+first_val; 
+								cells[search_index] = -1;
+								is_combined = 1;
+							}
+							break;
+						}
+					}
+				}
+			}
+			if(combined){ //if values were moved
+				cells[index] = combined; //set value to new combined value
+				if(is_combined){ //if values were combined
+					cur_game->score += cells[index]; //update score
+				}
+			}
+		}
+	}
 
-    return 1;
+	int disparities = 0;
+	for(int i=0; i<((cur_game->rows)*(cur_game->cols)); i++){
+		if(cur_game->cells[i] != cells[i]){ //check for disparities
+			disparities ++;
+		}
+		cur_game->cells[i] = cells[i]; //copy working copy of cells to board
+	}
+	if(!disparities){
+		return 0;
+	}
+	else{
+    	return 1;
+	}
 };
 
 int move_d(game * cur_game){ //slide to the right
     //YOUR CODE STARTS HERE
+	int* cells = malloc((cur_game->rows)*(cur_game->cols)); //create empty array of cells
+	for(int i=0; i<((cur_game->rows)*(cur_game->cols)); i++){
+		cells[i] = cur_game->cells[i]; //copy current board to new array of cells
+	}
+	for(int col = (cur_game->cols)-1; col>=0; col--){ //go through col by col
+		for(int row = 0; row<(cur_game->rows); row++){ //go through row by row
+			int index = col+(row*cur_game->cols); //calculate current cell index
+			int combined = 0;
+			int is_combined = 0;
+			if(cells[index]!=-1){ //if cell has value
+				for(int search_index=index-1; search_index>=(row*(cur_game->cols)); search_index--){ //cycle through following cells in the col
+					if(cells[search_index]!=-1){ //if the parsed cell is assigned
+						if(cells[index]==cells[search_index]){ //if duplicate found
+							cells[search_index] = -1;
+							combined = cells[index]*2;
+							is_combined = 1;
+						}
+						break;
+					}
+				}
+			}
+			else if(cells[index]==-1){ //cell is unassigned
+				int first_val = 0;
+				for(int search_index=index-1; search_index>=(row*(cur_game->cols)); search_index--){ //cycle through following cells in the col
+					if(!first_val){ //if no first value has been yet found
+						if(cells[search_index]!=-1){ //if the parsed cell is assigned
+							first_val = cells[search_index]; //set first value
+							cells[search_index] = -1; //clear cell
+							combined = first_val;
+						}
+					}
+					if(first_val){ //if a first value has been found
+						if(cells[search_index]!=-1){ //if the parsed cell is assigned
+							if(first_val==cells[search_index]){ //if duplicate found
+								combined = cells[search_index]+first_val; 
+								cells[search_index] = -1;
+								is_combined = 1;
+							}
+							break;
+						}
+					}
+				}
+			}
+			if(combined){ //if values were moved
+				cells[index] = combined; //set value to new combined value
+				if(is_combined){ //if values were combined
+					cur_game->score += cells[index]; //update score
+				}
+			}
+		}
+	}
 
-    return 1;
+	int disparities = 0;
+	for(int i=0; i<((cur_game->rows)*(cur_game->cols)); i++){
+		if(cur_game->cells[i] != cells[i]){ //check for disparities
+			disparities ++;
+		}
+		cur_game->cells[i] = cells[i]; //copy working copy of cells to board
+	}
+	if(!disparities){
+		return 0;
+	}
+	else{
+    	return 1;
+	}
 };
 
 int legal_move_check(game * cur_game)
@@ -98,7 +372,15 @@ int legal_move_check(game * cur_game)
  */
 {
     //YOUR CODE STARTS HERE
-
+	int empties = 0;
+	for(int i=0; i<((cur_game->rows)*(cur_game->cols)); i++){
+		if(cur_game->cells[i] == -1){
+			empties++;
+		}
+	}
+	if(!empties){
+		return 0;
+	}
     return 1;
 }
 
