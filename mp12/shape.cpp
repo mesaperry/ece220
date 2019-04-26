@@ -33,8 +33,9 @@ Rectangle Rectangle::operator + (const Rectangle& rec){
 	return *ptr;
 }
 Rectangle Rectangle::operator - (const Rectangle& rec){
-	printf("%lf %lf", std::max((width_ - rec.width_), (rec.width_ - width_)), std::max((length_ - rec.length_), (rec.length_ - length_)));
-	Rectangle* ptr = new Rectangle(std::max((width_ - rec.width_), (rec.width_ - width_)), std::max((length_ - rec.length_), (rec.length_ - length_)));
+	printf("%lf %lf %lf %lf\n", width_, rec.width_, length_, rec.length_);
+	printf("%lf %lf\n", std::max((double)0, (width_ - rec.width_)), std::max((double)0, (length_ - rec.length_)));
+	Rectangle* ptr = new Rectangle(std::max((double)0, (width_ - rec.width_)), std::max((double)0, (length_ - rec.length_)));
 	return *ptr;
 }
 
@@ -58,7 +59,7 @@ Circle Circle::operator + (const Circle& rec){
 	return *ptr;
 }
 Circle Circle::operator - (const Circle& rec){
-	Circle* ptr = new Circle(std::max((double)0, rec.radius_ - radius_));
+	Circle* ptr = new Circle(std::max((double)0, radius_ - rec.radius_));
 	return *ptr;
 }
 
@@ -74,13 +75,13 @@ Sphere::Sphere(double radius):Shape("Sphere"){
 	radius_ = radius;
 }
 double Sphere::getArea()const{return (double)4 * M_PI * radius_ * radius_;}
-double Sphere::getVolume()const{return (double)(4/3) * radius_ * radius_ * radius_ * M_PI;}
+double Sphere::getVolume()const{return ((double)4/(double)3 * radius_ * radius_ * radius_ * M_PI);}
 Sphere Sphere::operator + (const Sphere& rec){
 	Sphere* ptr = new Sphere(rec.radius_ + radius_);
 	return *ptr;
 }
 Sphere Sphere::operator - (const Sphere& rec){
-	Sphere* ptr = new Sphere(std::max((double)0, rec.radius_ - radius_));
+	Sphere* ptr = new Sphere(std::max((double)0, radius_ - rec.radius_));
 	return *ptr;
 }
 
@@ -104,7 +105,7 @@ RectPrism RectPrism::operator + (const RectPrism& rec){
 	return *ptr;
 }
 RectPrism RectPrism::operator - (const RectPrism& rec){
-	RectPrism* ptr = new RectPrism(std::max((double)0, (rec.width_ - width_)), std::max((double)0, (rec.length_ - length_)), std::max((double)0, (rec.height_ - height_)));
+	RectPrism* ptr = new RectPrism(std::max((double)0, (width_ - rec.width_)), std::max((double)0, (length_ - rec.length_)), std::max((double)0, (height_ - rec.height_)));
 	return *ptr;
 }
 
